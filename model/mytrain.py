@@ -7,7 +7,6 @@ import torch.nn as nn
 import datetime
 import time
 import matplotlib.pyplot as plt
-# from torchinfo import summary
 import yaml
 import json
 import sys
@@ -253,178 +252,6 @@ def test_model(model, testset_loader, log=None, phase="all"):
     
     print(np.array(all_metrics))
     
-    exit()
-    
-    """
-    sample_size, pre_len, node_num = y_true.shape
-    congest_true = 0
-    congest_false = 0
-    free_true = 0
-    free_false = 0
-    congest_nodes = []
-    congest_attn_score = []
-    for i in range(sample_size):
-        for j in range(node_num):
-            y = y_true[i, :, j]
-            x = x_hist[i, :, j]
-            y_hat = y_pred[i, :, j]
-            if np.mean(y) < 0.01:
-                continue
-            if np.mean(y_hat) >= 60: # and np.mean(y) < 60:
-                # congest_true += 1
-                congest_nodes.append((i, j))
-                continue
-            elif np.mean(y_hat) >= 60 and np.mean(y) < 60:
-                congest_false += 1
-            elif np.mean(y_hat) >= 60 and np.mean(y) >= 60:
-                free_true += 1
-            elif np.mean(y_hat) < 60 and np.mean(y) >= 60:
-                free_false += 1
-    print(congest_true, congest_false, free_true, free_false)
-    distance_matrix = read_distance_matrix("../data/METRLA")
-    
-    distance_nodes_congested_high_attn_scores = []
-    nodes_congested_high_attn_scores = []
-    for i, j in congest_nodes:
-        t = i
-        node_id = j
-        attn_matrix = attn_scores[t * 4 : t * 4 + 4]
-        congested_attn_scores = np.sum(attn_matrix, 0)[j]
-        srt_idx = np.argsort(congested_attn_scores)
-        srt_idx = np.delete(srt_idx, np.where(srt_idx == j))
-        
-        distance_nodes_congested_high_attn_scores.append(distance_matrix[j][srt_idx[-3::]])
-        nodes_congested_high_attn_scores.append(x_hist[i, :, srt_idx[-3::]])
-        
-    distance_nodes_congested_high_attn_scores = np.hstack(distance_nodes_congested_high_attn_scores).squeeze() 
-    nodes_congested_high_attn_scores = np.vstack(nodes_congested_high_attn_scores).squeeze()   
-    nodes_congested_high_attn_scores = np.mean(nodes_congested_high_attn_scores, axis=-1)
-    print(distance_nodes_congested_high_attn_scores.shape, nodes_congested_high_attn_scores.shape)
-    H, xedges, yedges = np.histogram2d(nodes_congested_high_attn_scores, distance_nodes_congested_high_attn_scores)
-    print(H.shape)
-    print(H)
-    print(xedges, yedges)
-    plt.figure()
-    plt.imshow(H.T, interpolation='nearest', origin='lower',
-        extent=[xedges[0] * 300, xedges[-1] * 300, yedges[0], yedges[-1]])
-    plt.xticks((xedges * 300).astype(int), xedges.astype(int))
-    plt.xlabel("avg historical speed")
-    plt.ylabel("distance")
-    plt.savefig("distance_avg_speed_gt60_high_attn_scores.png")
-    exit()
-    plt.figure()
-    plt.hist(distance_nodes_congested_high_attn_scores)
-    # plt.scatter(distance_nodes_congested_high_attn_scores, nodes_congested_high_attn_scores)
-    # plt.xlabel("distance")
-    # plt.ylabel("avg speed")
-    plt.savefig("distance_lt50_high_attn_scores.png")
-    exit()
-    """
-
-    # y_true = y_true.flatten()
-    # print(y_true.shape)
-
-    # plt.figure()
-    # plt.hist(y_true, bins=50)
-    # plt.savefig("speed.png")
-
-    # print(y_true.shape, y_pred.shape)
-    """
-    if phase == "free":
-        sample_size, pre_len, node_num = y_true.shape
-        new_y_true = []
-        new_y_pred = []
-        for i in range(sample_size):
-            for j in range(node_num):
-                y = y_true[i, :, j]
-                if np.mean(y) >= 60:
-                    new_y_true.append(y)
-                    new_y_pred.append(y_pred[i, :, j])
-        new_y_true = np.array(new_y_true)
-        new_y_pred = np.array(new_y_pred)
-        new_y_true = np.expand_dims(new_y_true, -1)
-        new_y_pred = np.expand_dims(new_y_pred, -1)
-        y_true = new_y_true
-        y_pred = new_y_pred
-    elif phase == "congested":
-        sample_size, pre_len, node_num = y_true.shape
-        new_y_true = []
-        new_y_pred = []
-        for i in range(sample_size):
-            for j in range(node_num):
-                y = y_true[i, :, j]
-                if np.mean(y) < 60:
-                    new_y_true.append(y)
-                    new_y_pred.append(y_pred[i, :, j])
-        new_y_true = np.array(new_y_true)
-        new_y_pred = np.array(new_y_pred)
-        new_y_true = np.expand_dims(new_y_true, -1)
-        new_y_pred = np.expand_dims(new_y_pred, -1)
-        y_true = new_y_true
-        y_pred = new_y_pred
-
-    # estimate the change of the state
-    f2f_acc = 0
-    f2s_acc = 0
-    s2s_acc = 0
-    s2f_acc = 0
-    all_f2f = 0
-    all_f2s = 0
-    all_s2s = 0
-    all_s2f = 0
-    sample_size, pre_len, node_num = y_true.shape
-    for i in range(sample_size):
-        for j in range(node_num):
-            y = y_true[i, :, j]
-            x = x_hist[i, :, j]
-            y_hat = y_pred[i, :, j]
-            if np.mean(x) >= 60 and np.mean(y) >= 60:
-                all_f2f += 1
-                if np.mean(y_hat) >= 60:
-                    f2f_acc += 1
-            elif np.mean(x) >= 60 and np.mean(y) < 60:
-                all_f2s += 1
-                if np.mean(y_hat) < 60:
-                    f2s_acc += 1
-            elif np.mean(x) < 60 and np.mean(y) < 60:
-                all_s2s += 1
-                if np.mean(y_hat) < 60:
-                    s2s_acc += 1   
-            elif np.mean(x) < 60 and np.mean(y) >= 60:
-                all_s2f += 1
-                if np.mean(y_hat) >= 60:
-                    s2f_acc += 1    
-    f2f_acc = f2f_acc / all_f2f
-    f2s_acc = f2s_acc / all_f2s
-    s2s_acc = s2s_acc / all_s2s
-    s2f_acc = s2f_acc / all_s2f
-
-    print("free to free", f2f_acc)
-    print("free to congest", f2s_acc)
-    print("congest to congest", s2s_acc)
-    print("congest to free", s2f_acc)
-    """
-
-    rmse_all, mae_all, mape_all = RMSE_MAE_MAPE(y_true, y_pred)
-    out_str = "All Steps RMSE = %.5f, MAE = %.5f, MAPE = %.5f\n" % (
-        rmse_all,
-        mae_all,
-        mape_all,
-    )
-    out_steps = y_pred.shape[1]
-    for i in range(out_steps):
-        rmse, mae, mape = RMSE_MAE_MAPE(y_true[:, i, :], y_pred[:, i, :])
-        mae_std = std_MAE(y_true[:, i, :], y_pred[:, i, :])
-        out_str += "Step %d RMSE = %.5f, MAE = %.5f, MAPE = %.5f, MAE std = %.5f \n" % (
-            i + 1,
-            rmse,
-            mae,
-            mape,
-            mae_std
-        )
-
-    print_log(out_str, log=log, end="")
-    print_log("Inference time: %.2f s" % (end - start), log=log)
 
 
 if __name__ == "__main__":
@@ -527,19 +354,6 @@ if __name__ == "__main__":
     print_log(
         json.dumps(cfg, ensure_ascii=False, indent=4, cls=CustomJSONEncoder), log=log
     )
-    # print_log(
-    #     summary(
-    #         model,
-    #         [
-    #             cfg["batch_size"],
-    #             cfg["in_steps"],
-    #             cfg["num_nodes"],
-    #             next(iter(trainset_loader))[0].shape[-1],
-    #         ],
-     #        verbose=0,  # avoid print twice
-     #    ),
-     #    log=log,
-    # )
     print_log(log=log)
 
     # --------------------------- train and test model --------------------------- #
