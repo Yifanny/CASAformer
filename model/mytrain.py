@@ -26,7 +26,7 @@ from lib.utils import (
 )
 from lib.metrics import RMSE_MAE_MAPE, std_MAE, RMSE_MAE_MAPE_under_diff_states
 from lib.my_data_prepare import get_dataloaders_from_index_data, read_distance_matrix
-from model.mySTAEformer import mySTAEformer
+from model.CASAformer import CASAformer
 
 # ! X shape: (B, T, N, C)
 
@@ -274,7 +274,7 @@ if __name__ == "__main__":
     dataset = args.dataset
     dataset = dataset.upper()
     data_path = f"../data/{dataset}"
-    model_name = mySTAEformer.__name__
+    model_name = CASAformer.__name__
 
     with open(f"{model_name}.yaml", "r") as f:
         cfg = yaml.safe_load(f)
@@ -282,7 +282,7 @@ if __name__ == "__main__":
 
     # -------------------------------- load model -------------------------------- #
 
-    model = mySTAEformer(**cfg["model_args"])
+    model = CASAformer(**cfg["model_args"])
 
     # ------------------------------- make log file ------------------------------ #
 
@@ -361,7 +361,7 @@ if __name__ == "__main__":
     print_log(f"Loss: {criterion._get_name()}", log=log)
     print_log(log=log)
     
-    # model.load_state_dict(torch.load("../saved_models/mySTAEformer-with-congest-mask-METRLA-2024-07-05-16-19-24.pt", map_location=DEVICE))
+    # model.load_state_dict(torch.load("../saved_models/CASAformer-with-congest-mask-METRLA-2024-07-05-16-19-24.pt", map_location=DEVICE))
     model = train(
         model,
         trainset_loader,
