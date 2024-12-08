@@ -1,7 +1,6 @@
 import torch.nn as nn
 import torch
 import time
-# from torchinfo import summary
 
 
 class AttentionLayer(nn.Module):
@@ -397,7 +396,7 @@ class SparseAttentionLayer(nn.Module):
         return out, attn_score
         
         
-class mySTAEformer(nn.Module):
+class CASAformer(nn.Module):
     def __init__(
         self,
         num_nodes,
