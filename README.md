@@ -26,3 +26,6 @@ python train.py -d <dataset> -g <gpu_id>
 `<dataset>`:
 - METRLA
 - PEMSBAY
+
+#### PEMSBAY dataset
+PEMSBAY dataset can be downloaded here: https://github.com/liyaguang/DCRNN.
